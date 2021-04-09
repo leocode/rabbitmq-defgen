@@ -7,7 +7,7 @@ const { AppModule } = require(process.argv[2]) as { AppModule: Module };
 type Klass = Function;
 type Provider = {
   provide: string | Symbol;
-  useClass: Klass; // @TODO extend this interface for other possibilities
+  useClass?: Klass; // @TODO extend this interface for other possibilities
 } | Klass;
 type Module = Klass | {
   module: Klass;
@@ -16,7 +16,6 @@ type Module = Klass | {
   controllers: Klass[];
   exports: Provider[];
 }
-type DomainEventHandler = {};
 interface DomainEvent {
   type: string;
   version: number;
@@ -58,21 +57,38 @@ const uniqModules = (modules: Module[]): Module[] => uniqWith(modules, (m1, m2) 
 const isDomainEventHandler = (provider: Provider) => {
   if (isClass(provider)) {
     return Reflect.hasMetadata('__domainEventHandler', provider);
-  } else {
-    // @TODO or not? maybe decorator can be added only to something, that is directly provided by class
+  } else if (provider.useClass) {
+    return Reflect.hasMetadata('__domainEventHandler', provider.useClass);
   }
 }
 
-const getDomainEventHandlerEvents = (domainEventHandler: DomainEventHandler): DomainEvent[] => {
-  return Reflect.getMetadata('__domainEventHandler', domainEventHandler).events;
+const isDomainEventDispatcher = (provider: Provider) => {
+  if (isClass(provider)) {
+    return Reflect.hasMetadata('__domainEventDispatcher', provider);
+  } else if (provider.useClass) {
+    return Reflect.hasMetadata('__domainEventDispatcher', provider.useClass);
+  }
 }
 
-const getDomainEventHandlerDispatcher = (domainEventHandler: DomainEventHandler): string => {
-  return Reflect.getMetadata('__domainEventHandler', domainEventHandler).dispatcher;
+const getProviderClass = (provider: Provider): Klass => {
+  return isClass(provider) ? provider : provider.useClass!; // @TODO support other types
+}
+
+const getDomainEventHandlerEvents = (domainEventHandler: Provider): DomainEvent[] => {
+  return Reflect.getMetadata('__domainEventHandler', getProviderClass(domainEventHandler)).events;
+}
+
+const getDomainEventHandlerDispatcher = (domainEventHandler: Provider): string => {
+  return Reflect.getMetadata('__domainEventHandler', getProviderClass(domainEventHandler)).dispatcher;
+}
+
+const getDomainEventDispatcherQueue = (domainEventDispatcher: Provider): string => {
+  return Reflect.getMetadata('__domainEventDispatcher', getProviderClass(domainEventDispatcher)).queue;
 }
 
 const providers = uniqModules(traverseModules(AppModule)).flatMap(getProviders);
 const domainHandlers = providers.filter(isDomainEventHandler);
+const domainDispatchers = providers.filter(isDomainEventDispatcher);
 
 // Get sample events of sample domain handler
 console.log(getDomainEventHandlerEvents(domainHandlers[0]))
@@ -80,7 +96,5 @@ console.log(getDomainEventHandlerEvents(domainHandlers[0]))
 // Get sample dispatcher name of sample domain handler
 console.log(getDomainEventHandlerDispatcher(domainHandlers[0]))
 
-// Retrieve dispatcher provider (with dispatcher name and queue name)
-const dispatcherProvider = providers.filter(p => !isClass(p) && p.provide.toString() === 'Symbol(tenant-gmail-messages-to-process_dispatcher)')[0];
-
-console.log(dispatcherProvider)
+// Get sample queue name from dispatcher
+console.log(getDomainEventDispatcherQueue(domainDispatchers[0]));
