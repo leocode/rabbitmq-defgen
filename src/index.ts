@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { uniqWith } from 'lodash';
+import { uniq, uniqWith } from 'lodash';
 
 process.env.UPLOAD_PATH = '/tmp/upload';
 const { AppModule } = require(process.argv[2]) as { AppModule: Module };
@@ -87,6 +87,14 @@ const getDomainEventDispatcherQueue = (domainEventDispatcher: Provider): string 
   return Reflect.getMetadata('__domainEventDispatcher', getProviderClass(domainEventDispatcher)).queue;
 }
 
+const getDomainEventExchange = (event: DomainEvent): string => {
+  return event.type.split('.')[0];
+}
+
+const getDomainEventRoutingKey = (event: DomainEvent): string => {
+  return event.type;
+}
+
 const providersToMap = (providers: Provider[]): Map<ProviderKey, Class> => {
   return new Map(providers.map(p => ([
     isClass(p) ? p : p.provide,
@@ -99,11 +107,35 @@ const providersMap = providersToMap(providers);
 const domainHandlers = providers.filter(isDomainEventHandler);
 const domainDispatchers = providers.filter(isDomainEventDispatcher);
 
-// Get sample events of sample domain handler
-console.log(getDomainEventHandlerEvents(domainHandlers[0]))
+const queues = domainDispatchers.map(getDomainEventDispatcherQueue);
 
-// Get sample dispatcher name of sample domain handler
-console.log(getDomainEventHandlerDispatcher(domainHandlers[0]))
+const exchanges = uniq(
+  domainHandlers.flatMap(getDomainEventHandlerEvents).map(getDomainEventExchange)
+).flatMap(exchange => [`private_${exchange}_general`, `public_${exchange}_general`]);
 
-// Get sample queue name from dispatcher
-console.log(getDomainEventDispatcherQueue(domainDispatchers[0]));
+const routings = domainHandlers.flatMap(handler => {
+  const events = getDomainEventHandlerEvents(handler);
+  const dispatcherKey = getDomainEventHandlerDispatcher(handler);
+  const dispatcher = providersMap.get(dispatcherKey);
+
+  if (!dispatcher) {
+    throw new Error('Some of event handlers requires not provided dispatcher!');
+  }
+
+  if (dispatcher.name === 'RabbitMQDomainEventHashDispatcher') {
+    // @TODO add support for hash dispatcher
+    return [];
+  }
+
+  return events.map(e => ({
+    source: `private_${getDomainEventExchange(e)}_general`, // @TODO add support for public ??
+    destination: getDomainEventDispatcherQueue(dispatcher),
+    routingKey: getDomainEventRoutingKey(e),
+  }));
+});
+
+console.log(queues);
+
+console.log(exchanges);
+
+console.log(routings);
