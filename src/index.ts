@@ -4,16 +4,17 @@ import { uniqWith } from 'lodash';
 process.env.UPLOAD_PATH = '/tmp/upload';
 const { AppModule } = require(process.argv[2]) as { AppModule: Module };
 
-type Klass = Function;
+type Class = Function;
+type ProviderKey = string | Symbol | Class;
 type Provider = {
-  provide: string | Symbol;
-  useClass?: Klass; // @TODO extend this interface for other possibilities
-} | Klass;
-type Module = Klass | {
-  module: Klass;
+  provide: ProviderKey;
+  useClass?: Class; // @TODO extend this interface for other possibilities
+} | Class;
+type Module = Class | {
+  module: Class;
   imports: Module[];
   providers: Provider[];
-  controllers: Klass[];
+  controllers: Class[];
   exports: Provider[];
 }
 interface DomainEvent {
@@ -21,7 +22,7 @@ interface DomainEvent {
   version: number;
 }
 
-const isClass = (v: any): v is Klass => typeof v === 'function';
+const isClass = (v: any): v is Class => typeof v === 'function';
 const isSymbol = (v: any): v is Symbol => typeof v === 'symbol';
 
 const getModules = (module: Module): Module[] => {
@@ -70,7 +71,7 @@ const isDomainEventDispatcher = (provider: Provider) => {
   }
 }
 
-const getProviderClass = (provider: Provider): Klass => {
+const getProviderClass = (provider: Provider): Class => {
   return isClass(provider) ? provider : provider.useClass!; // @TODO support other types
 }
 
@@ -78,7 +79,7 @@ const getDomainEventHandlerEvents = (domainEventHandler: Provider): DomainEvent[
   return Reflect.getMetadata('__domainEventHandler', getProviderClass(domainEventHandler)).events;
 }
 
-const getDomainEventHandlerDispatcher = (domainEventHandler: Provider): string => {
+const getDomainEventHandlerDispatcher = (domainEventHandler: Provider): ProviderKey => {
   return Reflect.getMetadata('__domainEventHandler', getProviderClass(domainEventHandler)).dispatcher;
 }
 
@@ -86,7 +87,15 @@ const getDomainEventDispatcherQueue = (domainEventDispatcher: Provider): string 
   return Reflect.getMetadata('__domainEventDispatcher', getProviderClass(domainEventDispatcher)).queue;
 }
 
+const providersToMap = (providers: Provider[]): Map<ProviderKey, Class> => {
+  return new Map(providers.map(p => ([
+    isClass(p) ? p : p.provide,
+    isClass(p) ? p : p.useClass!, // @TODO support other types
+  ])));
+}
+
 const providers = uniqModules(traverseModules(AppModule)).flatMap(getProviders);
+const providersMap = providersToMap(providers);
 const domainHandlers = providers.filter(isDomainEventHandler);
 const domainDispatchers = providers.filter(isDomainEventDispatcher);
 
