@@ -17,4 +17,4 @@ export const getNestProviderClass = (p: NestProvider) => {
   const klass = isClass(p) ? p : p.useClass!;
 
   return klass ?? (() => {}); // if useClass does not exist, for now return mock
-}
+};
