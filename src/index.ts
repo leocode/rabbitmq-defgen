@@ -1,22 +1,13 @@
-import 'reflect-metadata';
-import { definitionsJsonExporter } from './exporters/definitionsJsonExporter';
-import { RabbitDataGenerator } from './generators/RabbitDataGenerator';
-import { NestScrapper } from './scrappers/NestScrapper';
-import type { NestModule } from './types';
+import { Option, program } from 'commander';
+import { processFile } from './processFile';
+const packageJson = require('../package.json');
 
-process.env.UPLOAD_PATH = '/tmp/upload';
-const { AppModule } = require(process.argv[2]) as { AppModule: NestModule };
+program
+  .version(packageJson.version)
+  .addOption(new Option('-o, --output <outputType>', 'output needs to be defined').choices(['json', 'terraform']))
+  .addOption(new Option('-i, --input <inputPath>', 'input path needs to be defined'))
+  .parse();
 
-const { dispatchers, handlers, publishers } = NestScrapper(AppModule);
-const generator = new RabbitDataGenerator({ dispatchers, handlers, publishers });
+const options = program.opts();
 
-const output = definitionsJsonExporter(generator, {
-  globalParameters: [],
-  user: {
-    name: 'rabbitmq',
-    password: 'rabbitmq',
-  },
-  vhost: 'dev',
-});
-
-process.stdout.write(output);
+process.stdout.write(processFile(options.input, options.output));
