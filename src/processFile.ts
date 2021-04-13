@@ -1,5 +1,6 @@
 import 'reflect-metadata';
-import { definitionsJsonExporter } from './exporters/definitionsJsonExporter';
+import { jsonExporter } from './exporters/jsonExporter';
+import { terraformExporter } from './exporters/terraformExporter';
 import { RabbitDataGenerator } from './generators/RabbitDataGenerator';
 import { NestScrapper } from './scrappers/NestScrapper';
 import type { NestModule } from './types';
@@ -12,7 +13,7 @@ export const processFile = (inputPath: string, outputType: 'json' | 'terraform')
   const generator = new RabbitDataGenerator({ dispatchers, handlers, publishers });
 
   if (outputType === 'json') {
-    return definitionsJsonExporter(generator, {
+    return jsonExporter(generator, {
       globalParameters: [],
       user: {
         name: 'rabbitmq',
@@ -21,7 +22,10 @@ export const processFile = (inputPath: string, outputType: 'json' | 'terraform')
       vhost: 'dev',
     });
   } else if (outputType === 'terraform') {
-    throw new Error('terraform not supported yet');
+    return terraformExporter(generator, {
+      globalParameters: [],
+      vhost: 'dev',
+    });
   } else {
     throw new Error(`Unknown output type: ${outputType}`);
   }

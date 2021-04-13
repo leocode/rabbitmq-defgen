@@ -9,7 +9,7 @@ interface Config {
   globalParameters: { name: string, value: string }[];
 }
 
-export const definitionsJsonExporter = (generator: RabbitDataGenerator, config: Config): string => {
+export const jsonExporter = (generator: RabbitDataGenerator, config: Config): string => {
   const exchanges = generator.getExchanges();
   const queues = generator.getQueues();
   const routings = generator.getRoutings();
