@@ -8,6 +8,7 @@ interface DomainEventPayload {
 }
 
 interface DomainEvent {
+  type: string;
   exchange: string;
   routingKey: string;
 }
@@ -32,6 +33,7 @@ export class DomainEventHandler extends Provider {
 
   private mapDomainEventPayload(payload: DomainEventPayload): DomainEvent {
     return {
+      type: payload.type,
       exchange: payload.type.split('.')[0],
       routingKey: payload.type,
     };

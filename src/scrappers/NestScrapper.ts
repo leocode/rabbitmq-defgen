@@ -1,6 +1,7 @@
 import { uniqWith } from 'lodash';
 import { DomainEventDispatcher } from '../models/DomainEventDispatcher';
 import { DomainEventHandler } from '../models/DomainEventHandler';
+import { DomainEventPublisher } from '../models/DomainEventPublisher';
 import type { NestModule, NestProvider } from '../types';
 import { getNestProviderClass } from '../types';
 import { isClass } from '../types';
@@ -48,9 +49,14 @@ export const NestScrapper = (m: NestModule) => {
     .filter(p => DomainEventHandler.isImplementedBy(getNestProviderClass(p)))
     .map(p => new DomainEventHandler(p));
 
+  const publishers = nestProviders
+    .filter(p => DomainEventPublisher.isImplementedBy(getNestProviderClass(p)))
+    .map(p => new DomainEventPublisher(p));
+
   return {
     dispatchers,
     handlers,
+    publishers,
   };
 };
 

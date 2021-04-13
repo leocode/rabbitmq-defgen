@@ -2,10 +2,12 @@ import { uniq } from 'lodash';
 import type { DomainEventDispatcher } from '../models/DomainEventDispatcher';
 import type { DomainEventHandler } from '../models/DomainEventHandler';
 import { createHash, randomBytes } from 'crypto';
+import type { DomainEventPublisher } from '../models/DomainEventPublisher';
 
 interface Ctor {
   dispatchers: DomainEventDispatcher[];
   handlers: DomainEventHandler[];
+  publishers: DomainEventPublisher[];
 }
 
 interface Queue {
@@ -35,14 +37,21 @@ export interface Routing {
 export class RabbitDataGenerator {
   private dispatchers: DomainEventDispatcher[];
   private handlers: DomainEventHandler[];
+  private publishers: DomainEventPublisher[];
 
   constructor(ctor: Ctor) {
     this.dispatchers = ctor.dispatchers;
     this.handlers = ctor.handlers;
+    this.publishers = ctor.publishers;
   }
 
   public getExchanges(): Exchange[] {
-    const eventExchanges = uniq(this.handlers.flatMap(h => h.events).map(e => e.exchange));
+    const hashedEvents = this.publishers.flatMap(p => p.getMappedEvents());
+    const eventExchanges = uniq(
+      this.handlers.flatMap(h => h.events)
+        .filter(e => !hashedEvents.includes(e.type))
+        .map(e => e.exchange),
+    );
     const toExchangeNames = (exchange: string) => [
       `private_${exchange}_general`,
       `public_${exchange}_general`,
@@ -57,7 +66,14 @@ export class RabbitDataGenerator {
       arguments: {},
     }) as Exchange);
 
-    const hashExchanges: Exchange[] = [];
+    const hashExchanges: Exchange[] = uniq(this.publishers.flatMap(p => p.getMappedExchanges())).map(exchangeName => ({
+      name: exchangeName,
+      type: 'x-consistent-hash',
+      durable: true,
+      autoDelete: false,
+      internal: false,
+      arguments: {},
+    }));
 
     return [
       ...directExchanges,

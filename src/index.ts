@@ -7,8 +7,8 @@ import type { NestModule } from './types';
 process.env.UPLOAD_PATH = '/tmp/upload';
 const { AppModule } = require(process.argv[2]) as { AppModule: NestModule };
 
-const { dispatchers, handlers } = NestScrapper(AppModule);
-const generator = new RabbitDataGenerator({ dispatchers, handlers });
+const { dispatchers, handlers, publishers } = NestScrapper(AppModule);
+const generator = new RabbitDataGenerator({ dispatchers, handlers, publishers });
 
 const output = definitionsJsonExporter(generator, {
   globalParameters: [],
