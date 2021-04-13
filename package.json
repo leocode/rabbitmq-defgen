@@ -1,7 +1,11 @@
 {
   "name": "rabbitmq-defgen",
   "version": "1.0.0",
-  "main": "src/index.ts",
+  "bin": "./build/index.ts",
+  "main": "./build/index.ts",
+  "scripts": {
+    "build": "tsc"
+  },
   "dependencies": {
     "@types/lodash": "^4.14.168",
     "@types/node": "^14.14.37",
