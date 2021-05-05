@@ -5,14 +5,19 @@ import { RabbitDataGenerator } from './generators/RabbitDataGenerator';
 import { NestScrapper } from './scrappers/NestScrapper';
 import type { NestModule } from './types';
 
-export const processFile = (inputPath: string, outputType: 'json' | 'terraform'): string => {
+interface Options {
+  input: string;
+  output: 'json' | 'terraform';
+}
+
+export const processFile = ({ input, output }: Options): string => {
   process.env.UPLOAD_PATH = '/tmp/upload';
-  const { AppModule } = require(inputPath) as { AppModule: NestModule };
+  const { AppModule } = require(input) as { AppModule: NestModule };
 
   const { dispatchers, handlers, publishers } = NestScrapper(AppModule);
   const generator = new RabbitDataGenerator({ dispatchers, handlers, publishers });
 
-  if (outputType === 'json') {
+  if (output === 'json') {
     return jsonExporter(generator, {
       globalParameters: [],
       user: {
@@ -21,12 +26,12 @@ export const processFile = (inputPath: string, outputType: 'json' | 'terraform')
       },
       vhost: 'dev',
     });
-  } else if (outputType === 'terraform') {
+  } else if (output === 'terraform') {
     return terraformExporter(generator, {
       globalParameters: [],
       vhost: 'dev',
     });
   } else {
-    throw new Error(`Unknown output type: ${outputType}`);
+    throw new Error(`Unknown output type: ${output}`);
   }
 };

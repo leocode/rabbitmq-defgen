@@ -6,9 +6,12 @@ const packageJson = require('../package.json');
 program
   .version(packageJson.version)
   .addOption(new Option('-o, --output <outputType>', 'output needs to be defined').choices(['json', 'terraform']).makeOptionMandatory())
-  .requiredOption('-i, --input <inputPath>', 'input path needs to be defined')
+  .addOption(new Option('-i, --input <inputPath>', 'input path needs to be defined').makeOptionMandatory())
   .parse();
 
 const options = program.opts();
 
-process.stdout.write(processFile(options.input, options.output));
+process.stdout.write(processFile({
+  input: options.input,
+  output: options.output,
+}));
