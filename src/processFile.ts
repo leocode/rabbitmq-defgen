@@ -7,10 +7,11 @@ import type { NestModule } from './types';
 
 interface Options {
   input: string;
+  vhost: string;
   output: 'json' | 'terraform';
 }
 
-export const processFile = ({ input, output }: Options): string => {
+export const processFile = ({ input, output, vhost }: Options): string => {
   process.env.UPLOAD_PATH = '/tmp/upload';
   const { AppModule } = require(input) as { AppModule: NestModule };
 
@@ -24,12 +25,12 @@ export const processFile = ({ input, output }: Options): string => {
         name: 'rabbitmq',
         password: 'rabbitmq',
       },
-      vhost: 'dev',
+      vhost,
     });
   } else if (output === 'terraform') {
     return terraformExporter(generator, {
       globalParameters: [],
-      vhost: 'dev',
+      vhost,
     });
   } else {
     throw new Error(`Unknown output type: ${output}`);
