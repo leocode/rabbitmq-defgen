@@ -12,8 +12,22 @@ program
 
 const options = program.opts();
 
+const jsonOptions = options.output === 'json' 
+  ? (
+    program
+      .addOption(new Option('--username <username>', 'username needs to be defined').makeOptionMandatory())
+      .addOption(new Option('--password <password>', 'password needs to be defined').makeOptionMandatory())
+      .parse()
+      .opts()
+   ) as any
+   : {
+     username: '',
+     password: '',
+   };
+
 process.stdout.write(processFile({
   input: options.input,
   output: options.output,
   vhost: options.vhost,
+  jsonOptions,
 }));

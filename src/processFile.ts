@@ -9,10 +9,10 @@ interface Options {
   input: string;
   vhost: string;
   output: 'json' | 'terraform';
+  jsonOptions: { username: string; password: string };
 }
 
-export const processFile = ({ input, output, vhost }: Options): string => {
-  process.env.UPLOAD_PATH = '/tmp/upload';
+export const processFile = ({ input, output, vhost, jsonOptions }: Options): string => {
   const { AppModule } = require(input) as { AppModule: NestModule };
 
   const { dispatchers, handlers, publishers } = NestScrapper(AppModule);
@@ -22,8 +22,8 @@ export const processFile = ({ input, output, vhost }: Options): string => {
     return jsonExporter(generator, {
       globalParameters: [],
       user: {
-        name: 'rabbitmq',
-        password: 'rabbitmq',
+        name: jsonOptions.username,
+        password: jsonOptions.password,
       },
       vhost,
     });
