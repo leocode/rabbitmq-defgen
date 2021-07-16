@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { join } from 'path';
 import { jsonExporter } from './exporters/jsonExporter';
 import { terraformExporter } from './exporters/terraformExporter';
 import { RabbitDataGenerator } from './generators/RabbitDataGenerator';
@@ -13,7 +14,7 @@ interface Options {
 }
 
 export const processFile = ({ input, output, vhost, jsonOptions }: Options): string => {
-  const { AppModule } = require(input) as { AppModule: NestModule };
+  const { AppModule } = require(join(process.cwd(), input)) as { AppModule: NestModule };
 
   const { dispatchers, handlers, publishers } = NestScrapper(AppModule);
   const generator = new RabbitDataGenerator({ dispatchers, handlers, publishers });

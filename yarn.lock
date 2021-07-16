@@ -843,11 +843,6 @@ optionator@^0.9.1:
     type-check "^0.4.0"
     word-wrap "^1.2.3"
 
-options-defaults@^2.0.32:
-  version "2.0.32"
-  resolved "https://registry.yarnpkg.com/options-defaults/-/options-defaults-2.0.32.tgz#2f90015150c650b63c0b2cab05eb612fe75497d9"
-  integrity sha512-IxFb7Bd4e9DD0ynRqZttnBMfKhN13rirDiU7YmvJh0D06a3iIgmzPSywjLgf07YU28fy387KM/GXHVJW6YSL1g==
-
 parent-module@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/parent-module/-/parent-module-1.0.1.tgz#691d2709e78c79fae3a156622452d00762caaaa2"
@@ -1046,13 +1041,6 @@ to-regex-range@^5.0.1:
   integrity sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==
   dependencies:
     is-number "^7.0.0"
-
-ts-import@^2.0.32:
-  version "2.0.32"
-  resolved "https://registry.yarnpkg.com/ts-import/-/ts-import-2.0.32.tgz#12c6d49a58e6f93b4e134e64d56970b7ec826450"
-  integrity sha512-gXty4fi2AE4eUNo447kpE5JRARvLGLMBmJV0AY5mtuqV695J7v3KxqG9albzQzy/fVRob3AxpuOBszzdGLTzYA==
-  dependencies:
-    options-defaults "^2.0.32"
 
 ts-node@^9.1.1:
   version "9.1.1"
