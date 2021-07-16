@@ -1,6 +1,10 @@
 {
   "name": "@leocode/rabbitmq-defgen",
   "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leocode/rabbitmq-defgen.git"
+  },
   "bin": {
     "rabbitmq-defgen": "./build/index.js"
   },
